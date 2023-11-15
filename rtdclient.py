@@ -112,5 +112,5 @@ for idx, line in enumerate(file):
 			print('Timeout with packet with sequence number:', seq_num, "\n")
 			print('Resending packet')
 			print('\n\n')
-			packet_loss_flag = 1
+
 print("All packets recieved, file has been sent successfully, closing connection...")

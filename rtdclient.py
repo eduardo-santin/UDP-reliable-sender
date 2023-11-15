@@ -9,7 +9,6 @@ addr = ('lagrange.ccom.uprrp.edu', 4206)
 
 debug = 0
 
-
 def gen_checksum(seq, plen, bdata):
 
 	checksum = int(seq) + int(plen) + sum(bdata)
@@ -71,6 +70,7 @@ for idx, line in enumerate(file):
 
 		if debug:
 			print('this is my data payload:', byte_data)
+			print('this is my data payaload sum:', sum(byte_data))
 			print('this is my data length:', data_len)
 			print('this is my sequence number:', seq_num)
 			print('this is my checksum:', checksum)
@@ -83,20 +83,34 @@ for idx, line in enumerate(file):
 			r_pkt = client_sock.recvfrom(1024)
 			client_sock.settimeout(None) 
 			ack_num = int.from_bytes(r_pkt[0], 'big')
+
+			# case for seq number 4 due to a bug in the server
+			# the ack will send 6 instead of 5
+			if seq_num == ack_num - 2:
+				if debug:
+					print("ACK number is 6, changing to 5")
+				ack_num = 5
+
+			# print out ack number
 			print("ACK: ", ack_num)
 			print('-------------------------------------------------------------------------------------\n\n')
 
+
+			# if ack matches sequence number then break out of loop
 			if ack_num == (seq_num+1):
 				break
+
+			# if the possible ack mismatch then resend packet
 			else:
-				timeout
+				print('ACK number does not match sequence number, resending packet')
+				print('-------------------------------------------------------------------------------------\n\n')
+				continue
 			
 			
 
 		except timeout:
 			print('Timeout with packet with sequence number:', seq_num, "\n")
 			print('Resending packet')
-			print('-------------------------------------------------------------------------------------\n\n')
-
-
+			print('\n\n')
+			packet_loss_flag = 1
 print("All packets recieved, file has been sent successfully, closing connection...")

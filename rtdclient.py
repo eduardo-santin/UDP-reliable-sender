@@ -7,13 +7,24 @@ from struct import pack
 # adress and port number assigned by professor
 addr = ('lagrange.ccom.uprrp.edu', 4206)
 
+
+# debug flag for printing out packet info
 debug = 0
 
+
+
+# Functions
+######################################################################
+
+# generates our simple checksum
+# sums the sequence number, payload length, and the sum of the payload
 def gen_checksum(seq, plen, bdata):
 
 	checksum = int(seq) + int(plen) + sum(bdata)
+
 	return checksum
 
+# network byte order, ! , breaks it so default byte order is used
 def pack_header(seq, checksum, plen):
 	pack_seq = pack('B', seq)
 	pack_sum = pack('I', checksum)
@@ -21,9 +32,14 @@ def pack_header(seq, checksum, plen):
 
 	return pack_seq + pack_sum + pack_len
 
+
+# just glues the header and payload together
 def gen_packet(header, payload):
 	
 	return header + payload
+
+
+############################################################################
 
 # make sure user added text file
 if len(argv) != 2:
@@ -60,14 +76,15 @@ for idx, line in enumerate(file):
 	header = pack_header(seq_num, checksum, data_len)
 
 	# create packet
-	reliable_packet = gen_packet(header, byte_data)
+	trusty_udp_packet = gen_packet(header, byte_data)
 
 
 	while True:
 		# send packet
-		client_sock.sendto(reliable_packet, addr)
+		client_sock.sendto(trusty_udp_packet, addr)
 
 
+		# print out packet info for debugging sakes
 		if debug:
 			print('this is my data payload:', byte_data)
 			print('this is my data payaload sum:', sum(byte_data))
@@ -75,9 +92,11 @@ for idx, line in enumerate(file):
 			print('this is my sequence number:', seq_num)
 			print('this is my checksum:', checksum)
 			print('this is my header:', header)
-			print('this is my packet:', reliable_packet)
+			print('this is my packet:', trusty_udp_packet)
 			print('-------------------------------------------------------------------------------------\n\n')
 
+		
+		# try except block to catch timeout or ack mismatch
 		try:
 			client_sock.settimeout(3)
 			r_pkt = client_sock.recvfrom(1024)
